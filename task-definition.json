@@ -1,0 +1,49 @@
+{
+  "family": "appify-connector",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::643942183493:role/unshackle-ecs-task-execution-role",
+  "containerDefinitions": [
+    {
+      "name": "appify-connector",
+      "image": "643942183493.dkr.ecr.us-west-1.amazonaws.com/appify-connector:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {"name": "APPIFY_LOGIN_URL", "value": "https://login.appify.com"},
+        {"name": "REDIS_URL", "value": "redis://unshackle-redis.jdvc1y.0001.usw1.cache.amazonaws.com:6379/0"},
+        {"name": "PATH_PREFIX", "value": "/connector"},
+        {"name": "ENVIRONMENT", "value": "prod"},
+        {"name": "LOG_LEVEL", "value": "INFO"},
+        {"name": "JWT_TTL_SECONDS", "value": "43200"},
+        {"name": "SESSION_TTL_SECONDS", "value": "82800"}
+      ],
+      "secrets": [
+        {
+          "name": "APPIFY_GATEWAY_AUTH",
+          "valueFrom": "arn:aws:secretsmanager:us-west-1:643942183493:secret:appify/connector/gateway-auth-vE1Ksx"
+        },
+        {
+          "name": "JWT_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:us-west-1:643942183493:secret:appify/connector/jwt-secret-MeB51i"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/appify-connector",
+          "awslogs-region": "us-west-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}
