@@ -16,7 +16,7 @@ RUN groupadd -g 10010 $USERNAME \
 
 WORKDIR /home/$USERNAME
 
-COPY --chown=$USERNAME:$USERNAME pyproject.toml uv.lock* ./
+COPY --chown=$USERNAME:$USERNAME pyproject.toml uv.lock* README.md ./
 COPY --chown=$USERNAME:$USERNAME src ./src
 
 RUN uv sync --no-dev
