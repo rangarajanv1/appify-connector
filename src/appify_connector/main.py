@@ -36,12 +36,25 @@ def create_app() -> FastAPI:
         format="%(asctime)s %(levelname)s %(name)s %(message)s",
     )
 
+    prefix = settings.path_prefix
     app = FastAPI(
         title="Appify Connector",
         version="0.1.0",
         description="REST gateway for Appify metadata.",
         lifespan=lifespan,
+        docs_url=f"{prefix}/docs",
+        redoc_url=f"{prefix}/redoc",
+        openapi_url=f"{prefix}/openapi.json",
     )
+
+    @app.get(prefix or "/", include_in_schema=False)
+    async def _root() -> dict:
+        return {
+            "service": "appify-connector",
+            "version": "0.1.0",
+            "docs": f"{prefix}/docs",
+            "openapi": f"{prefix}/openapi.json",
+        }
 
     if settings.cors_allow_origins:
         app.add_middleware(
@@ -69,7 +82,6 @@ def create_app() -> FastAPI:
             content={"code": "INTERNAL", "message": f"{type(exc).__name__}: {exc}"},
         )
 
-    prefix = settings.path_prefix
     app.include_router(health.router, prefix=prefix)
     app.include_router(auth.router, prefix=prefix)
     app.include_router(objects.router, prefix=prefix)
