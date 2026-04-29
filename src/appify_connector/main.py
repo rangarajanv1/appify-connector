@@ -47,7 +47,6 @@ def create_app() -> FastAPI:
         openapi_url=f"{prefix}/openapi.json",
     )
 
-    @app.get(prefix or "/", include_in_schema=False)
     async def _root() -> dict:
         return {
             "service": "appify-connector",
@@ -55,6 +54,10 @@ def create_app() -> FastAPI:
             "docs": f"{prefix}/docs",
             "openapi": f"{prefix}/openapi.json",
         }
+
+    app.add_api_route(prefix or "/", _root, methods=["GET"], include_in_schema=False)
+    if prefix:
+        app.add_api_route(f"{prefix}/", _root, methods=["GET"], include_in_schema=False)
 
     if settings.cors_allow_origins:
         app.add_middleware(

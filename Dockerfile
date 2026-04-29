@@ -55,4 +55,5 @@ CMD ["gunicorn", "appify_connector.main:app", \
      "--worker-class", "uvicorn.workers.UvicornWorker", \
      "--bind", "0.0.0.0:8080", \
      "--timeout", "60", \
-     "--keep-alive", "120"]
+     "--keep-alive", "120", \
+     "--forwarded-allow-ips=*"]
