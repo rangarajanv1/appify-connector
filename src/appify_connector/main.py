@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from .appify.client import AppifyClient
 from .config import get_settings
 from .exceptions import AppifyConnectorError
-from .routers import auth, health, objects, sors
+from .routers import auth, health, me, objects, sors
 from .session_store import SessionStore
 
 logger = logging.getLogger("appify_connector")
@@ -89,6 +89,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router, prefix=prefix)
     app.include_router(objects.router, prefix=prefix)
     app.include_router(sors.router, prefix=prefix)
+    app.include_router(me.router, prefix=prefix)
     return app
 
 

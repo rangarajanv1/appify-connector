@@ -87,6 +87,41 @@ class AppifyClient:
         fields = [RawField.model_validate(item) for item in (data or [])]
         return match, fields
 
+    async def get_me(
+        self, session: UpstreamSession
+    ) -> tuple[dict, dict | None, list[dict]]:
+        async with self._http(session) as client:
+            try:
+                details_resp = await client.get("/getLoggedInUserDetails")
+                if details_resp.status_code >= 400:
+                    raise AppifyUpstreamError(
+                        f"getLoggedInUserDetails {details_resp.status_code}: {_truncate(details_resp.text)}"
+                    )
+                details = details_resp.json()
+
+                profile_id = details.get("profileID")
+                profile_meta: dict | None = None
+                permissions: list[dict] = []
+                if profile_id:
+                    perms_resp = await client.get(
+                        f"/flex/profile/permissions?profiles={profile_id}"
+                    )
+                    if perms_resp.status_code == 200:
+                        data = perms_resp.json()
+                        records = data if isinstance(data, list) else (data.get("records") or [])
+                        if records:
+                            rec = records[0]
+                            profile_meta = {
+                                "id": profile_id,
+                                "name": rec.get("profileName"),
+                                "title": rec.get("title"),
+                                "description": rec.get("description"),
+                            }
+                            permissions = rec.get("permissions") or []
+            except httpx.RequestError as err:
+                raise AppifyUpstreamError(f"Appify upstream unreachable: {err}") from err
+        return details, profile_meta, permissions
+
     async def _get(self, session: UpstreamSession, path: str) -> object:
         async with self._http(session) as client:
             try:
